@@ -13,6 +13,22 @@ buyer task → commerce → quote (no cents) → payments → sent
                           owns cents
 ```
 
+## What this repo does
+
+This is a **cert harness**, not a storefront and not a daemon. Nothing starts on its own. You run a command; it replays gold JSON against two in-process sims, prints pass/fail, and exits.
+
+| You run | What happens |
+|---------|----------------|
+| `./scripts/install.sh` then `./scripts/test.sh` | Pytest (~29 tests, 15 scenarios). Green means the cert still holds. |
+| `./scripts/harness.sh` | Replay every scenario, or one file with `run path/to.json`. |
+| `./scripts/curriculum.sh --view /tmp/ach-trace.html` | Walk `h1_cloud_seats` into a **sent** invoice; write a three-lane HTML replay. |
+
+There is **no** default HTTP server, **no** MCP server, **no** live agent, **no** checkout widget. `docs/index.html` is a static landing page if you open it yourself. A later model can sit behind `ScriptedPolicy`; today the “policy” is the scenario file.
+
+**Success on the default path:** commit `nl-14` + `care-desk`; handoff has three quote lines (sku, qty, line type) **without cents**; after preview the ledger shows **$2,070** and `invoice_state: sent`.
+
+The catalog is **SaaS / cloud seats** (virtual desks, app bundles, support, backup, compliance) because the cert is a B2B quote-and-invoice machine: constraint facets, family-locked add-ons, setup + recurring + usage. It is not generic retail (fashion, grocery, one-shot carts). [Counter](https://github.com/b-lavania/counter) stays a **cafe POS** (`drip`, `latte`, `burrito`). Those two catalogs do not share SKUs; settlement stays parked. See [docs/bridge-spike.md](docs/bridge-spike.md).
+
 ## What a passing run is
 
 v0.1 at [`src/ach/`](src/ach) replays **fifteen** gold JSON scenarios and, on the cloud-seat curriculum, stops at `invoice_state: sent`. A pass means the script’s `steps[]` matched the sim **and** any per-step `expect` held. It does **not** mean a model chose those tools.
